@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Digital Assets - Store & Support</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
+
+        /* CONFIGURAÇÕES GERAIS */
+        * { -webkit-tap-highlight-color: transparent; outline: none !important; user-select: none; box-sizing: border-box; }
+        body, html { margin: 0; padding: 0; background-color: #050505; color: #b3b3b3; font-family: 'Inter', sans-serif; width: 100%; height: 100%; overflow: hidden; }
+
+        /* HEADER */
+        nav { background: rgba(8, 8, 8, 0.98); padding: 15px 0 5px 0; text-align: center; border-bottom: 1px solid #1a1a1a; position: fixed; top: 0; width: 100%; z-index: 1000; backdrop-filter: blur(20px); }
+        nav h1 { margin: 0 0 10px 0; color: #fff; font-size: 0.7rem; letter-spacing: 4px; text-transform: uppercase; opacity: 0.5; }
+        
+        .tabs { display: flex; justify-content: center; gap: 8px; margin-bottom: 12px; }
+        .tab-btn { font-size: 0.6rem; font-weight: 800; letter-spacing: 1px; color: #444; text-transform: uppercase; cursor: pointer; padding: 8px 18px; border-radius: 6px; border: 1px solid #1a1a1a; background: #0c0c0c; transition: 0.3s; }
+        .tab-btn.active { color: #fff; background: #151515; border-color: #333; }
+
+        .filter-bar { display: flex; justify-content: center; gap: 20px; padding: 10px 0; transition: 0.3s; }
+        .filter-opt { font-size: 0.65rem; font-weight: 900; text-transform: uppercase; cursor: pointer; color: #222; transition: 0.3s; letter-spacing: 1.5px; }
+        .filter-opt.active[data-sys="android"] { color: #3DDC84; text-shadow: 0 0 10px rgba(61, 220, 132, 0.3); }
+        .filter-opt.active[data-sys="ios"] { color: #55ACEE; text-shadow: 0 0 10px rgba(85, 172, 238, 0.3); }
+
+        /* ESTRUTURA DE SLIDE */
+        .main-container { display: flex; width: 200vw; height: 100vh; transition: transform 0.5s cubic-bezier(0.65, 0, 0.35, 1); }
+        .page { width: 100vw; height: 100vh; overflow-y: auto; padding-top: 170px; padding-bottom: 50px; scroll-behavior: smooth; }
+        .content-wrapper { max-width: 420px; margin: 0 auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+
+        /* CARDS DE PRODUTO */
+        .card { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 16px; padding: 45px 20px 25px; text-align: center; position: relative; transition: transform 0.3s, opacity 0.3s; }
+        .card.android { border-left: 4px solid #3DDC84; }
+        .card.ios { border-left: 4px solid #55ACEE; }
+        .card.hybrid { border-left: 4px solid #3DDC84; border-right: 4px solid #55ACEE; }
+
+        /* ANIMAÇÃO DE TROCA */
+        .card.exit { opacity: 0; transform: translateX(-20px); }
+        .card.enter { opacity: 0; transform: translateY(20px); }
+        .card.visible { opacity: 1; transform: translate(0); }
+
+        /* BADGES */
+        .system-label { position: absolute; top: 18px; right: 20px; font-size: 0.6rem; font-weight: 900; text-transform: uppercase; }
+        .label-android { color: #3DDC84; }
+        .label-ios { color: #55ACEE; }
+
+        .daily-update { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #3DDC84; color: #000; font-size: 0.55rem; font-weight: 900; padding: 4px 12px; border-radius: 20px; animation: pulse 2s infinite; z-index: 10; }
+        @keyframes pulse { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.05); } }
+
+        /* CONTEÚDO DO CARD */
+        .card h2 { color: #fff; margin: 0; font-size: 1.1rem; }
+        .preco { font-size: 1.8rem; color: #fff; margin: 5px 0; font-weight: 300; }
+        .preco.free { color: #3DDC84; font-weight: 900; }
+
+        .btn-desc { background: transparent; border: none; color: #555; font-size: 0.6rem; text-transform: uppercase; font-weight: 800; cursor: pointer; margin-bottom: 10px; }
+        .desc-content { max-height: 0; opacity: 0; overflow: hidden; transition: 0.4s; font-size: 0.75rem; color: #777; text-align: left; line-height: 1.4; padding: 0 10px; }
+        .desc-content.active { max-height: 120px; opacity: 1; padding-bottom: 15px; }
+
+        .btn-checkout { display: block; width: 100%; background: #fff; color: #000; padding: 16px; border-radius: 12px; font-weight: 900; text-decoration: none; font-size: 0.8rem; text-transform: uppercase; transition: 0.2s; }
+        .btn-checkout:active { transform: scale(0.98); }
+        .btn-free { background: #3DDC84; }
+
+        /* INDISPONÍVEL */
+        .card.sold-out { opacity: 0.3; filter: grayscale(1); pointer-events: none; }
+
+        /* ESTILO SUPORTE / FAQ */
+        .faq-card { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 12px; margin-bottom: 10px; cursor: pointer; }
+        .faq-question { padding: 18px; color: #eee; font-size: 0.85rem; font-weight: 600; display: flex; justify-content: space-between; }
+        .faq-answer { max-height: 0; opacity: 0; overflow: hidden; padding: 0 18px; font-size: 0.8rem; color: #666; transition: 0.3s; }
+        .faq-card.active .faq-answer { max-height: 100px; opacity: 1; padding-bottom: 15px; }
+        .faq-card.active { border-color: #333; }
+
+        .atendente-card { background: linear-gradient(145deg, #0f0f0f, #050505); padding: 30px 20px; border-radius: 20px; border: 1px solid #1a1a1a; text-align: center; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <h1>XTR STORE</h1>
+    <div class="tabs">
+        <div class="tab-btn active" id="btn-loja" onclick="irPara('loja')">Mercado</div>
+        <div class="tab-btn" id="btn-suporte" onclick="irPara('suporte')">Suporte</div>
+    </div>
+    <div class="filter-bar" id="filter-ui">
+        <div class="filter-opt active" data-sys="android" onclick="filtrar('android')">Android</div>
+        <div class="filter-opt" data-sys="ios" onclick="filtrar('ios')">iOS</div>
+    </div>
+</nav>
+
+<div class="main-container" id="slider">
+    
+    <section class="page">
+        <div class="content-wrapper" id="vitrine">
+            
+            <div class="card android" data-system="android">
+                <div class="daily-update">ATUALIZA TODOS OS DIAS</div>
+                <div class="system-label label-android">Android</div>
+                <h2>MOD MENU APK 1</h2>
+                <p class="preco free">GRÁTIS</p>
+                <button class="btn-desc" onclick="toggleDesc(this)">Ver Detalhes</button>
+                <div class="desc-content">• Mod menu para android<br>• Gratuito.<br>• Use conta bot.<br>• Atualizado hoje.</div>
+                <a href="#" class="btn-checkout btn-free">Download</a>
+            </div>
+
+            
+        
+
+            <div class="card android" data-system="android">
+                <div class="daily-update">ATUALIZA TODOS OS DIAS</div>
+                <div class="system-label label-android">Android</div>
+                <h2>MOD MENU APK 2</h2>
+                <p class="preco free">GRÁTIS</p>
+                <button class="btn-desc" onclick="toggleDesc(this)">Ver Detalhes</button>
+                <div class="desc-content">• Mod menu para android.<br>• Gratuito.<br>• Use conta bot.<br>• Atualizado hoje.</div>
+                <a href="#" class="btn-checkout btn-free">Download</a>
+            </div>
+
+            <div class="card android" data-system="android">
+                <div class="system-label label-android">Android</div>
+                <h2>PAINEL BLACK WHITE</h2>
+                <p class="preco">R$ 12,67</p>
+                <button class="btn-desc" onclick="toggleDesc(this)">Ver Detalhes</button>
+                <div class="desc-content">• Ante Ban.<br>• Envio Rapido.<br>• Permanente.</div>
+                <a href="#" class="btn-checkout">Comprar</a>
+            </div>
+
+            <div class="card android sold-out" data-system="android">
+                <div class="system-label label-android">FREE FIRE</div>
+                <h2>Conta bot LV15</h2>
+                <p class="preco">INDISPONÍVEL</p>
+                <a href="#" class="btn-checkout">Esgotado</a>
+            </div>
+
+            <div class="card hybrid" data-system="hybrid">
+                <div class="system-label"><span class="label-android">Android</span> <span style="color:#222">/</span> <span class="label-ios">iOS</span></div>
+                <h2>MACRO SETTINGS V1.8</h2>
+                <p class="preco">R$ 22,90</p>
+                <button class="btn-desc" onclick="toggleDesc(this)">Ver Detalhes</button>
+                <div class="desc-content">• Acesso permanente.<br>• Todas as atualizações inclusas.</div>
+                <a href="#" class="btn-checkout">Comprar</a>
+            </div>
+
+            <div class="card hybrid" data-system="hybrid">
+                <div class="system-label"><span class="label-android">Android</span> <span style="color:#222">/</span> <span class="label-ios">iOS</span></div>
+                <h2>FAKE LAG + HOLOGRAMA</h2>
+                <p class="preco">R$ 27,37</p>
+                <button class="btn-desc" onclick="toggleDesc(this)">Ver Detalhes</button>
+                <div class="desc-content">• Acesso 30 dias.<br>• Anti ban.</div>
+                <a href="#" class="btn-checkout">Comprar</a>
+            </div>
+
+            <div class="card ios" data-system="ios">
+                <div class="system-label label-ios">iOS</div>
+                <h2>iCloud 200GB (Mensal)</h2>
+                <p class="preco">R$ 14,90</p>
+                <button class="btn-desc" onclick="toggleDesc(this)">Ver Detalhes</button>
+                <div class="desc-content">• Backup completo em nuvem.<br>• Ativado direto na sua conta.</div>
+                <a href="#" class="btn-checkout">Comprar</a>
+            </div>
+
+            <div class="card ios" data-system="ios">
+                <div class="system-label label-ios">iOS</div>
+                <h2>Apple Arcade Anual</h2>
+                <p class="preco">R$ 115,00</p>
+                <button class="btn-desc" onclick="toggleDesc(this)">Ver Detalhes</button>
+                <div class="desc-content">• Sem anúncios e compras internas.<br>• Mais de 200 jogos exclusivos.</div>
+                <a href="#" class="btn-checkout">Comprar</a>
+            </div>
+
+            <div class="card ios" data-system="ios">
+                <div class="system-label label-ios">iOS</div>
+                <h2>Final Cut iPad Pro</h2>
+                <p class="preco">R$ 39,90</p>
+                <button class="btn-desc" onclick="toggleDesc(this)">Ver Detalhes</button>
+                <div class="desc-content">• Editor de vídeo profissional.<br>• Requer processador M1 ou superior.</div>
+                <a href="#" class="btn-checkout">Comprar</a>
+            </div>
+
+        </div>
+    </section>
+
+    <section class="page">
+        <div class="content-wrapper">
+            <h2 style="color:#fff; font-size:1.1rem; text-align:center;">Centro de Ajuda</h2>
+            
+            <div class="faq-card" onclick="this.classList.toggle('active')">
+                <div class="faq-question">Como recebo o acesso? <span>+</span></div>
+                <div class="faq-answer">O envio é feito automaticamente via e-mail ou WhatsApp após a aprovação do seu pagamento.</div>
+            </div>
+
+            <div class="faq-card" onclick="this.classList.toggle('active')">
+                <div class="faq-question">Quais as formas de pagamento? <span>+</span></div>
+                <div class="faq-answer">Aceitamos PIX, Cartão de Crédito e Saldo Interno com liberação na hora.</div>
+            </div>
+            
+
+            <div class="atendente-card">
+                <div style="width:10px; height:10px; background:#3DDC84; border-radius:50%; margin:0 auto 10px; box-shadow:0 0 10px #3DDC84;"></div>
+                <h3 style="color:#fff; margin:0 0 5px 0;">Atendimento Online</h3>
+                <p style="font-size:0.75rem; color:#555; margin-bottom:20px;">Segunda a Sábado das 09h às 22h</p>
+                <a href="https://wa.me/55999999999" class="btn-checkout btn-free">Falar com Atendente</a>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<script>
+    const slider = document.getElementById('slider');
+    const filterUI = document.getElementById('filter-ui');
+
+    function irPara(destino) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        if (destino === 'loja') {
+            slider.style.transform = 'translateX(0)';
+            filterUI.style.opacity = '1';
+            document.getElementById('btn-loja').classList.add('active');
+        } else {
+            slider.style.transform = 'translateX(-100vw)';
+            filterUI.style.opacity = '0';
+            document.getElementById('btn-suporte').classList.add('active');
+        }
+    }
+
+    function toggleDesc(btn) {
+        const content = btn.nextElementSibling;
+        const isActive = content.classList.contains('active');
+        document.querySelectorAll('.desc-content').forEach(d => d.classList.remove('active'));
+        document.querySelectorAll('.btn-desc').forEach(b => b.innerText = "Ver Detalhes");
+        if (!isActive) {
+            content.classList.add('active');
+            btn.innerText = "Fechar";
+        }
+    }
+
+    function filtrar(sistema) {
+        const cards = document.querySelectorAll('.card');
+        document.querySelectorAll('.filter-opt').forEach(o => o.classList.remove('active'));
+        document.querySelector(`[data-sys="${sistema}"]`).classList.add('active');
+
+        // Animação de Saída
+        cards.forEach(card => {
+            if (card.style.display !== 'none') {
+                card.classList.add('exit');
+                card.classList.remove('visible');
+            }
+        });
+
+        setTimeout(() => {
+            cards.forEach(card => {
+                const sys = card.getAttribute('data-system');
+                card.classList.remove('exit');
+                if (sys === sistema || sys === 'hybrid') {
+                    card.style.display = 'block';
+                    card.classList.add('enter');
+                    setTimeout(() => {
+                        card.classList.remove('enter');
+                        card.classList.add('visible');
+                    }, 50);
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }, 250);
+    }
+
+    // Inicialização
+    filtrar('android');
+</script>
+
+</body>
+</html>
